@@ -60,8 +60,8 @@ app.post('/verify', async (req, res) => {
 //     return res.status(500).json({ error: 'Internal Server Error' });
 //   }
 });
-if (require.main === module) {
-  app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-  });
-}
+// if (require.main === module) {
+//   app.listen(port, () => {
+//     console.log(`Server running at http://localhost:${port}`);
+//   });
+// }
