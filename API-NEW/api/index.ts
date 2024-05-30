@@ -119,7 +119,7 @@ app.post('/verify', async (req, res) => {
 	let result = -1;
     result = 1;
     return res.status(200).json({ result, twitterUsername, ethereumAddress });
-
+});
 app.listen(3000, () => console.log('Server ready on port 3000.'));
 
 module.exports = app;
