@@ -51,7 +51,7 @@ contract GettingStartedFunctionsConsumer is FunctionsClient, ConfirmedOwner {
         "const twitterUsername = args[0];"
         "const ethereumAddress = args[1];"
         "const apiResponse = await Functions.makeHttpRequest({"
-        "url: `https://swapi.info/verify/`,"
+        "url: `https://socialkingapi-3asfnyoc3-pepoc3s-projects-6305d281.vercel.app/api/verify`,"
         "method: `POST`,"
         "data:{`twitterUsername`: ${twitterUsername},`ethereumAddress`: ${ethereumAddress}}"
         "});"
