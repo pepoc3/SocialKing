@@ -51,15 +51,14 @@ contract GettingStartedFunctionsConsumer is FunctionsClient, ConfirmedOwner {
         "const twitterUsername = args[0];"
         "const ethereumAddress = args[1];"
         "const apiResponse = await Functions.makeHttpRequest({"
-        "url: `https://socialkingapi-3asfnyoc3-pepoc3s-projects-6305d281.vercel.app/api/verify`,"
-        "method: `POST`,"
-        "data:{`twitterUsername`: ${twitterUsername},`ethereumAddress`: ${ethereumAddress}}"
+        "url: `https://socialkingapi.vercel.app/api/verify?twitterUsername=${twitterUsername}&ethereumAddress=${ethereumAddress}`"
         "});"
         "if (apiResponse.error) {"
         "throw Error('Request failed');"
         "}"
         "const { data } = apiResponse;"
-        "return Functions.encodeString(data.result);";
+        "const resultString = String(data.result);"
+        "return Functions.encodeString(resultString);";
 
     //Callback gas limit
     uint32 gasLimit = 300000;
