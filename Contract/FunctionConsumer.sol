@@ -1,15 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.25;
 
 import {FunctionsClient} from "@chainlink/contracts@1.1.1/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
 import {ConfirmedOwner} from "@chainlink/contracts@1.1.1/src/v0.8/shared/access/ConfirmedOwner.sol";
 import {FunctionsRequest} from "@chainlink/contracts@1.1.1/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
-
-
-interface ICharacterUpdater {
-    function updateCharacter(string calldata character) external;
-}
-
 
 /**
  * Request testnet LINK and ETH here: https://faucets.chain.link/
@@ -21,13 +15,20 @@ interface ICharacterUpdater {
  * @notice This is an example contract to show how to make HTTP requests using Chainlink
  * @dev This contract uses hardcoded values and should not be used in production.
  */
-contract GettingStartedFunctionsConsumer is FunctionsClient, ConfirmedOwner {
+interface IReturnDataUpdater {
+    function updateReturnData(string memory _username, address _useraddress) external ;
+}
+
+
+contract SocialKingFunctionsConsumer is FunctionsClient, ConfirmedOwner {
     using FunctionsRequest for FunctionsRequest.Request;
 
     // State variables to store the last request ID, response, and error
     bytes32 public s_lastRequestId;
     bytes public s_lastResponse;
     bytes public s_lastError;
+    string _username;
+    address _useraddress;
 
     // Custom error type
     error UnexpectedRequestID(bytes32 requestId);
@@ -42,8 +43,8 @@ contract GettingStartedFunctionsConsumer is FunctionsClient, ConfirmedOwner {
 
     // Router address - Hardcoded for Sepolia
     // Check to get the router address for your supported network https://docs.chain.link/chainlink-functions/supported-networks
-    address router = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0;
-
+    address router = 0xC22a79eBA640940ABB6dF0f7982cc119578E11De;  //Polygon Amoy
+    address targetContract;
     // JavaScript source code
     // Fetch character name from the Star Wars API.
     // Documentation: https://swapi.info/people
@@ -57,16 +58,15 @@ contract GettingStartedFunctionsConsumer is FunctionsClient, ConfirmedOwner {
         "throw Error('Request failed');"
         "}"
         "const { data } = apiResponse;"
-        "const resultString = String(data.result);"
-        "return Functions.encodeString(resultString);";
+        "const result = data.result;"
+        "return Functions.encodeString(`${result}`);";
 
     //Callback gas limit
     uint32 gasLimit = 300000;
 
     // donID - Hardcoded for Sepolia
     // Check to get the donID for your supported network https://docs.chain.link/chainlink-functions/supported-networks
-    bytes32 donID =
-        0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;
+    bytes32 donID =0x66756e2d706f6c79676f6e2d616d6f792d310000000000000000000000000000;//Polygon Amoy
 
     // State variable to store the returned character information
     string public character;
@@ -78,16 +78,47 @@ contract GettingStartedFunctionsConsumer is FunctionsClient, ConfirmedOwner {
         targetContract = _targetContract;
     }
 
+    // function update(bytes memory returnData) external returns (int result, string memory twitterUsername, address ethereumAddress) {
+    //     IReturnDataUpdater(targetContract).updateReturnData(returnData);
+    // }
+    function stringToAddress(string memory str) public pure returns (address) {
+        bytes memory strBytes = bytes(str);
+        require(strBytes.length == 42, "Invalid address length");
+        bytes memory addrBytes = new bytes(20);
+
+        for (uint i = 0; i < 20; i++) {
+            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
+        }
+
+        return address(uint160(bytes20(addrBytes)));
+    }
+
+    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
+        uint8 byteValue = uint8(char);
+        if (byteValue >= uint8(bytes1('0')) && byteValue <= uint8(bytes1('9'))) {
+            return byteValue - uint8(bytes1('0'));
+        } else if (byteValue >= uint8(bytes1('a')) && byteValue <= uint8(bytes1('f'))) {
+            return 10 + byteValue - uint8(bytes1('a'));
+        } else if (byteValue >= uint8(bytes1('A')) && byteValue <= uint8(bytes1('F'))) {
+            return 10 + byteValue - uint8(bytes1('A'));
+        }
+        revert("Invalid hex character");
+    }
+
     /**
      * @notice Sends an HTTP request for character information
      * @param subscriptionId The ID for the Chainlink subscription
      * @param args The arguments to pass to the HTTP request
      * @return requestId The ID of the request
      */
+     
+
     function sendRequest(
         uint64 subscriptionId,
         string[] calldata args
-    ) external onlyOwner returns (bytes32 requestId) {
+    ) external  returns (bytes32 requestId) {
+        _username = args[0];
+        _useraddress = stringToAddress(args[1]);
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
         if (args.length > 0) req.setArgs(args); // Set the arguments for the request
@@ -124,7 +155,12 @@ contract GettingStartedFunctionsConsumer is FunctionsClient, ConfirmedOwner {
 
         // Emit an event to log the response
         emit Response(requestId, character, s_lastResponse, s_lastError);
-        ICharacterUpdater(targetContract).updateCharacter(character);
+        // ( int result, string memory twitterUsername, address ethereumAddress) = abi.decode(response, (int, string, address));
+        
+        if (keccak256(abi.encodePacked(character)) == keccak256(abi.encodePacked("1"))) {
+        IReturnDataUpdater(targetContract).updateReturnData(_username, _useraddress);
+    }
+        
 
     }
 }
