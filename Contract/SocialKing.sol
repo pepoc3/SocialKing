@@ -25,23 +25,19 @@ contract SocialKing is ERC1155 {
 
     struct Asset {
         uint256 id;
-        string arTxId; // arweave transaction id
+        string arTxId; 
         address creator;
         string author;
     }
 
-    // address constant FUNCTION_CONSUMER = 0xe583bf9b1DF8De38794ca0f34eb1EC89118D4e00;
-    address constant team = 0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db;
-    uint256 public assetIndex;
+    address constant team = 0x23AE1FC8E4e40274BeB45bb63f773C902EDD7423;
+    uint256 public assetIndex = 1;
     mapping(uint256 => Asset) public assets;
     mapping(address  => string) public authors;
     mapping(address => uint256[]) public userAssets;
     mapping(bytes32 => uint256) public txToAssetId;
     mapping(uint256 => uint256) public totalSupply;
     mapping(uint256 => uint256) public pool;
-    // mapping(address => uint256) public authorBalance;
-    // mapping(address => uint256) public creatorBalance;
-    // mapping(address => uint256) public teamBalance;
     mapping(address => uint256) public userBalance;
     mapping(string => uint256) public authorBalance;
 
@@ -127,12 +123,9 @@ contract SocialKing is ERC1155 {
         totalSupply[assetId] += amount;
         pool[assetId] += price;
         _mint(msg.sender, assetId, amount, "");
-        // emit Trade(TradeType.Buy, assetId, msg.sender, amount, price, creatorFee);
-        // (bool creatorFeeSent,) = payable(assets[assetId].creator).call{value: creatorFee}("");
         userBalance[assets[assetId].creator] += creatorFee;
         authorBalance[assets[assetId].author] += authorFee;
         userBalance[team] += teamFee;
-        // require(creatorFeeSent, "Failed to send Ether");
     }
 
     function sell(uint256 assetId, uint256 amount) public {
@@ -147,14 +140,10 @@ contract SocialKing is ERC1155 {
         _burn(msg.sender, assetId, amount);
         totalSupply[assetId] = supply - amount;
         pool[assetId] -= price;
-        // emit Trade(TradeType.Sell, assetId, msg.sender, amount, price, creatorFee);
-        // (bool sent,) = payable(msg.sender).call{value: price - creatorFee}("");
-        // (bool creatorFeeSent,) = payable(assets[assetId].creator).call{value: creatorFee}("");
         userBalance[assets[assetId].creator] += creatorFee;
         authorBalance[assets[assetId].author] += authorFee;
         userBalance[team] += teamFee;
         userBalance[msg.sender] += price - creatorFee - authorFee - teamFee;    
-        // require(sent && creatorFeeSent, "Failed to send Ether");
     }
 
     function uri(uint256 id) public view override returns (string memory) {
@@ -162,42 +151,10 @@ contract SocialKing is ERC1155 {
     }
 
     function updateReturnData(string memory _username, address _useraddress) external {
-            
-        // (int result, string memory twitterUsername, address ethereumAddress) = abi.decode(returnData, (int, string, address));
-
-        // ( result,   twitterUsername,  ethereumAddress) = abi.decode(returnData, (int, string, address));
-        authors[_useraddress] = _username;
-
-        // return (result, twitterUsername, ethereumAddress);
-        // authors[ethereumAddress] = stringToBytes32(twitterUsername);
-        
-        
+        authors[_useraddress] = _username;        
     }
 
-
-
-    // // Withdraw author balance
-    // function claimAuthorBalance() external {
-    //     bytes32 authorHash = authors[msg.sender];
-    //     uint256 balance = authorBalance[authorHash];
-    //     require(balance > 0, "No balance to claim");
-    //     authorBalance[authorHash] = 0;
-    //     emit withdrawl(msg.sender, balance);
-    //     (bool success,) = payable(msg.sender).call{value: balance}("");
-    //     require(success, "Failed to send Ether");
-    // }
-
-    // // Withdraw creator balance
-    // function claimCreatorBalance() external {
-    //     uint256 balance = creatorBalance[msg.sender];
-    //     require(balance > 0, "No balance to claim");
-    //     creatorBalance[msg.sender] = 0;
-    //     emit withdrawl(msg.sender, balance);
-    //     (bool success,) = payable(msg.sender).call{value: balance}("");
-    //     require(success, "Failed to send Ether");
-    // }
-
-    // Withdraw balance
+    // Withdraw for user and team
     function claim() external {
         uint256 balance = userBalance[msg.sender];
         require(balance > 0, "No balance to claim");
@@ -206,6 +163,8 @@ contract SocialKing is ERC1155 {
         (bool success,) = payable(msg.sender).call{value: balance}("");
         require(success, "Failed to send Ether");
     }
+
+    // Withdraw for author
     function authorClaim() external {
         uint256 balance = authorBalance[authors[msg.sender]];
         require(balance > 0, "No balance to claim");
@@ -222,14 +181,4 @@ contract SocialKing is ERC1155 {
     function getAuthorBalance() external view returns (uint256) {
         return authorBalance[authors[msg.sender]];
     }
-
-    // function getCreatorBalance() external view returns (uint256) {
-    //     return creatorBalance[msg.sender];
-    // }
-
-    // function getTeamBalance() external view returns (uint256) {
-    //     require(msg.sender == team, "Only team can get balance");
-    //     return teamBalance[team];
-    // }
-
 }

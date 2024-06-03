@@ -5,20 +5,9 @@ import {FunctionsClient} from "@chainlink/contracts@1.1.1/src/v0.8/functions/v1_
 import {ConfirmedOwner} from "@chainlink/contracts@1.1.1/src/v0.8/shared/access/ConfirmedOwner.sol";
 import {FunctionsRequest} from "@chainlink/contracts@1.1.1/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
 
-/**
- * Request testnet LINK and ETH here: https://faucets.chain.link/
- * Find information on LINK Token Contracts and get the latest ETH and LINK faucets here: https://docs.chain.link/resources/link-token-contracts/
- */
-
-/**
- * @title GettingStartedFunctionsConsumer
- * @notice This is an example contract to show how to make HTTP requests using Chainlink
- * @dev This contract uses hardcoded values and should not be used in production.
- */
 interface IReturnDataUpdater {
     function updateReturnData(string memory _username, address _useraddress) external ;
 }
-
 
 contract SocialKingFunctionsConsumer is FunctionsClient, ConfirmedOwner {
     using FunctionsRequest for FunctionsRequest.Request;
@@ -41,13 +30,8 @@ contract SocialKingFunctionsConsumer is FunctionsClient, ConfirmedOwner {
         bytes err
     );
 
-    // Router address - Hardcoded for Sepolia
-    // Check to get the router address for your supported network https://docs.chain.link/chainlink-functions/supported-networks
     address router = 0xC22a79eBA640940ABB6dF0f7982cc119578E11De;  //Polygon Amoy
     address targetContract;
-    // JavaScript source code
-    // Fetch character name from the Star Wars API.
-    // Documentation: https://swapi.info/people
     string source =
         "const twitterUsername = args[0];"
         "const ethereumAddress = args[1];"
@@ -64,8 +48,6 @@ contract SocialKingFunctionsConsumer is FunctionsClient, ConfirmedOwner {
     //Callback gas limit
     uint32 gasLimit = 300000;
 
-    // donID - Hardcoded for Sepolia
-    // Check to get the donID for your supported network https://docs.chain.link/chainlink-functions/supported-networks
     bytes32 donID =0x66756e2d706f6c79676f6e2d616d6f792d310000000000000000000000000000;//Polygon Amoy
 
     // State variable to store the returned character information
@@ -78,9 +60,6 @@ contract SocialKingFunctionsConsumer is FunctionsClient, ConfirmedOwner {
         targetContract = _targetContract;
     }
 
-    // function update(bytes memory returnData) external returns (int result, string memory twitterUsername, address ethereumAddress) {
-    //     IReturnDataUpdater(targetContract).updateReturnData(returnData);
-    // }
     function stringToAddress(string memory str) public pure returns (address) {
         bytes memory strBytes = bytes(str);
         require(strBytes.length == 42, "Invalid address length");
@@ -154,13 +133,9 @@ contract SocialKingFunctionsConsumer is FunctionsClient, ConfirmedOwner {
         s_lastError = err;
 
         // Emit an event to log the response
-        emit Response(requestId, character, s_lastResponse, s_lastError);
-        // ( int result, string memory twitterUsername, address ethereumAddress) = abi.decode(response, (int, string, address));
-        
+        emit Response(requestId, character, s_lastResponse, s_lastError);        
         if (keccak256(abi.encodePacked(character)) == keccak256(abi.encodePacked("1"))) {
         IReturnDataUpdater(targetContract).updateReturnData(_username, _useraddress);
     }
-        
-
     }
 }
